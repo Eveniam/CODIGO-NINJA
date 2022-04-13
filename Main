@@ -1,0 +1,60 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class NinjaControl : MonoBehaviour
+{
+    private float velocidadx = 10;
+    public float velocidady;
+    public GameObject BulletPrefab;
+
+    private Rigidbody2D rb;
+    private Animator anim;
+    private bool isJumping = false;
+    
+    private static readonly string ANIMATOR_STATE = "Estado";
+    private static readonly int RUN = 0;
+    private static readonly int JUMP = 1;
+    private static readonly int DEAD = 3;
+    void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
+    }
+
+    
+    void Update()
+    {
+        transform.Translate(velocidadx * Time.deltaTime, 0, 0);
+        //ChangeAnimation(RUN);
+        if (Input.GetKey(KeyCode.Space) && isJumping == false)
+        {
+            rb.AddForce(Vector2.up * velocidady, ForceMode2D.Impulse);
+            ChangeAnimation(JUMP);
+            isJumping = true;
+            ChangeAnimation(RUN);
+        }
+    }
+    
+    private void ChangeAnimation(int animation)
+    {
+        anim.SetInteger(ANIMATOR_STATE, animation);
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        var tag = other.gameObject.tag;
+        if (tag == "Enemy")
+        {
+            Destroy(other.gameObject);
+            anim.SetInteger(ANIMATOR_STATE, DEAD);
+            Destroy(this.gameObject, 3);
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision collision)
+    {
+        isJumping = false;
+    }
+}
